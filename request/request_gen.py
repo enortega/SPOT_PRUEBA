@@ -28,9 +28,9 @@ for imagen in imagenes:
     if id_camara not in data.keys():
         data[id_camara] = []
 
-    data[id_camara].append({"image": "imagenimagen", "date": "2020-12-12"})
+    data[id_camara].append({"image": imagen, "date": "2020-12-12"})
 
 
 # Guardar los datos en formato JSON en el archivo
-with open('base642.json', 'w') as file:
+with open('base64.json', 'w') as file:
     json.dump(data, file)
