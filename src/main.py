@@ -19,17 +19,19 @@ account = config('AZURE_ACCOUNT')
 app = FastAPI()
 
 posts = []
-
+#Creación del modelo para la recepción del mensaje en la petición
 class Message(BaseModel):
     image: str
     date: date
 
+#Creación del modelo para la ingesta de la información en la base de datos
 class Result(BaseModel):
     key: int
     image_date: str
     blob_name: str
     blob_url: str
-    
+
+#Ruta para la recepción del mensaje
 @app.post('/message')
 def message(data: Dict[int, List[Message]]):
     #Credenciales a Azure Storage
@@ -37,7 +39,7 @@ def message(data: Dict[int, List[Message]]):
     account_key = config('AZURE_KEY')
     container_name = config('AZURE_CONTAINER')
 
-    #NÚMERO DE HILOS PARA LA CARGA DEL BLOB
+    #Número de hilos para la carga de blobs en paralelo, la validación de este parámetro depende del entorno de ejecución
     max_workers = 2
 
     #Creación del cliente del servicio de Azure Storage
@@ -83,8 +85,6 @@ def message(data: Dict[int, List[Message]]):
     username = config('DB_USERNAME')
     password = config('DB_PASSWORD')
 
-    connection_string = f"DRIVER={{SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}"
-
     #CONEXIÓN A LA BASE DE DATOS
     try:
         #Conexión y creación del cursor
@@ -92,6 +92,7 @@ def message(data: Dict[int, List[Message]]):
         cursor = connection.cursor()
     except Exception as e:
         print(f'ERROR: {e}')
+        return {"mensaje": "Error en la conexión de la base de datos"}
     #Creación de tupla con los valores de los resultados
     values = tuple(tuple(result.values()) for result in results)
     try:
@@ -110,7 +111,7 @@ def message(data: Dict[int, List[Message]]):
         return e
     return "Archivos subidos exitosamente al contenedor de Azure Storage. Información insertada correctamente en la base de datos"
 
-
+#Ruta obtener la cantidad de blobs en el contendor
 @app.get('/prueba_carga')
 def message():
     #Credenciales a Azure Storage
@@ -126,9 +127,10 @@ def message():
     final_list = []
     for blob in blob_list:
         final_list.append(blob.name)
+    n = len(final_list)
+    return {'Cantidad_blobs': n}
 
-    return f'Lista de blobs: {final_list}'
-
+#Ruta para descargar la imagen a partir de la url del blob
 @app.get('/descarga_imagen')
 def descarga_imagen(blob_name: str):
     account = config('AZURE_ACCOUNT')
@@ -146,4 +148,6 @@ def descarga_imagen(blob_name: str):
         download_stream = blob_client.download_blob()
         file.write(download_stream.readall())
     
-    return "Archivo descargado exitosamente"
+    return {
+        "message": "Archivos subidos exitosamente al contenedor de Azure Storage. Información insertada correctamente en la base de datos"
+    }
