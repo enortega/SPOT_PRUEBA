@@ -12,7 +12,7 @@ import uuid
 from sqlalchemy.orm import sessionmaker
 import pymssql
 from datetime import date
-
+import asyncio
 #Credenciales a Azure Storage
 account = config('AZURE_ACCOUNT')
 
@@ -33,7 +33,7 @@ class Result(BaseModel):
 
 #Ruta para la recepción del mensaje
 @app.post('/message')
-def message(data: Dict[int, List[Message]]):
+async def message(data: Dict[int, List[Message]]):
     #Credenciales a Azure Storage
     account = config('AZURE_ACCOUNT')
     account_key = config('AZURE_KEY')
